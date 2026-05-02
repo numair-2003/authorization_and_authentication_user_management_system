@@ -1,0 +1,101 @@
+/* pages/Home.css */
+.home {
+  min-height: calc(100vh - 65px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem 2rem;
+}
+
+.home-inner {
+  max-width: 700px;
+  text-align: center;
+}
+
+.home-tag {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  color: var(--accent);
+  letter-spacing: 0.1em;
+}
+
+.home-title {
+  font-family: var(--font-serif);
+  font-size: clamp(2.5rem, 6vw, 4rem);
+  font-weight: 600;
+  color: var(--text);
+  margin: 0.75rem 0 1.2rem;
+  line-height: 1.1;
+}
+
+.home-title em {
+  color: var(--accent);
+  font-style: italic;
+}
+
+.home-desc {
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  color: var(--muted);
+  line-height: 1.7;
+  max-width: 500px;
+  margin: 0 auto 2rem;
+}
+
+.home-btns {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-bottom: 3rem;
+}
+
+.btn-home-primary {
+  background: var(--accent);
+  color: #0a0a0a;
+  padding: 0.85rem 2rem;
+  border-radius: 5px;
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-decoration: none;
+  transition: background 0.2s;
+  letter-spacing: 0.05em;
+}
+
+.btn-home-primary:hover { background: var(--accent-dim); }
+
+.btn-home-secondary {
+  background: transparent;
+  color: var(--text);
+  padding: 0.85rem 2rem;
+  border-radius: 5px;
+  border: 1px solid var(--border);
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  text-decoration: none;
+  transition: border-color 0.2s;
+  letter-spacing: 0.05em;
+}
+
+.btn-home-secondary:hover { border-color: var(--accent); }
+
+.home-features {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  justify-content: center;
+}
+
+.feature-chip {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 0.4rem 1rem;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  color: var(--muted);
+}

@@ -1,105 +1,42 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import UserForm from './components/UserForm';
-import UserList from './components/UserList';
-import { fetchUsers, createUser, deleteUser } from './services/api';
-import './App.css';
+// App.jsx - Root component with all routes
 
-const App = () => {
-  const [users, setUsers]         = useState([]);
-  const [adding, setAdding]       = useState(false);   
-  const [deletingId, setDeletingId] = useState(null);  
-  const [fetchError, setFetchError] = useState('');
-  const [toast, setToast]         = useState(null);    
+import React from 'react';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { AuthProvider } from './context/AuthContext';
+import ProtectedRoute from './components/ProtectedRoute';
+import Navbar from './components/Navbar';
+import Home           from './pages/Home';
+import Login          from './pages/Login';
+import Signup         from './pages/Signup';
+import Dashboard      from './pages/Dashboard';
+import AdminDashboard from './pages/AdminDashboard';
+import Profile        from './pages/Profile';
 
-  const showToast = (msg, type = 'success') => {
-    setToast({ msg, type });
-    setTimeout(() => setToast(null), 3000);
-  };
+const App = () => (
+  <AuthProvider>
+    <BrowserRouter>
+      <Navbar />
+      <Routes>
+        <Route path="/"        element={<Home />} />
+        <Route path="/login"   element={<Login />} />
+        <Route path="/signup"  element={<Signup />} />
 
-  const loadUsers = useCallback(async () => {
-    try {
-      setFetchError('');
-      const res = await fetchUsers();
-      setUsers(res.data.data);
-    } catch {
-      setFetchError('Could not connect to the backend. Make sure the server is running on port 5000.');
-    }
-  }, []);
+        <Route path="/dashboard" element={
+          <ProtectedRoute><Dashboard /></ProtectedRoute>
+        } />
 
-  useEffect(() => { loadUsers(); }, [loadUsers]);
+        <Route path="/profile" element={
+          <ProtectedRoute><Profile /></ProtectedRoute>
+        } />
 
-  const handleAddUser = async (userData) => {
-    setAdding(true);
-    try {
-      const res = await createUser(userData);
-      setUsers((prev) => [res.data.data, ...prev]);
-      showToast(`${res.data.data.name} added successfully!`);
-    } catch (err) {
-      throw err;
-    } finally {
-      setAdding(false);
-    }
-  };
+        <Route path="/admin" element={
+          <ProtectedRoute adminOnly={true}><AdminDashboard /></ProtectedRoute>
+        } />
 
-  const handleDeleteUser = async (id) => {
-    setDeletingId(id);
-    try {
-      await deleteUser(id);
-      setUsers((prev) => prev.filter((u) => u._id !== id));
-      showToast('User removed.', 'danger');
-    } catch {
-      showToast('Failed to delete user.', 'danger');
-    } finally {
-      setDeletingId(null);
-    }
-  };
-
-  return (
-    <div className="app">
-      <header className="app-header">
-        <div className="header-inner">
-          <div className="logo">
-            <span className="logo-bracket">[</span>
-            MERN
-            <span className="logo-bracket">]</span>
-          </div>
-          <p className="header-sub">User Management System</p>
-        </div>
-        <div className="stack-pills">
-          {['MongoDB', 'Express', 'React', 'Node.js'].map((t) => (
-            <span key={t} className="pill">{t}</span>
-          ))}
-        </div>
-      </header>
-
-      <main className="app-main">
-        {fetchError && (
-          <div className="banner-error">
-            <span>⚠</span> {fetchError}
-          </div>
-        )}
-
-        <div className="grid">
-          <UserForm onAddUser={handleAddUser} loading={adding} />
-          <UserList
-            users={users}
-            onDeleteUser={handleDeleteUser}
-            deletingId={deletingId}
-          />
-        </div>
-      </main>
-
-      <footer className="app-footer">
-        <code>GET /users · POST /users · DELETE /users/:id</code>
-      </footer>
-
-      {toast && (
-        <div className={`toast toast-${toast.type}`}>
-          {toast.type === 'success' ? '✓' : '✕'} {toast.msg}
-        </div>
-      )}
-    </div>
-  );
-};
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+    </BrowserRouter>
+  </AuthProvider>
+);
 
 export default App;

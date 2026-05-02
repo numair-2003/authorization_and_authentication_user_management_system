@@ -1,26 +1,53 @@
-# MERN User Management App
-### Internship Week 1 Project — DawoodTech NextGen
+# MERN Auth — JWT + Role-Based Access Control
+### Internship Week 2 Project — DawoodTech NextGen
 
-A full-stack CRUD application built with **MongoDB · Express.js · React · Node.js**
+A full-stack authentication system built with **MongoDB · Express.js · React · Node.js**
 
 
 ## Live Demo
 
 | | URL |
 |---|---|
-| **Frontend** | https://user-management-system-ten-phi.vercel.app |
-| **Backend API** | https://usermanagementsystem-production-c417.up.railway.app |
-
-> **Note:** The backend is hosted on Railway's free tier and may take 10–15 seconds to wake up after a period of inactivity. Simply refresh if the page doesn't load immediately.
+| **Frontend** | *(deploy to Vercel and add URL here)* |
+| **Backend API** | *(deploy to Railway and add URL here)* |
 
 
-## Deployment Stack
+## Authentication Flow
 
-| Service | Platform | Purpose |
-|---------|----------|---------|
-| Frontend | [Vercel](https://vercel.com) | Hosts the React app |
-| Backend | [Railway](https://railway.app) | Runs the Node/Express server |
-| Database | [MongoDB Atlas](https://www.mongodb.com/atlas) | Cloud-hosted MongoDB |
+```
+User Signup
+    │
+    ▼
+POST /api/auth/signup
+    │  → Validate input
+    │  → Hash password with bcrypt
+    │  → Save user to MongoDB
+    │  → Generate JWT token
+    ▼
+Return token + user data
+    │
+    ▼
+Frontend stores token in localStorage
+    │
+    ▼
+Every API request sends: Authorization: Bearer <token>
+    │
+    ▼
+authMiddleware verifies token
+    │
+    ├─ Valid token → attach user to req.user → next()
+    └─ Invalid token → 401 Unauthorized
+```
+
+
+## Roles
+
+| Role | Access |
+|------|--------|
+| **user** | View profile, update profile, user dashboard |
+| **admin** | All user access + admin panel, manage all users, change roles, delete users |
+
+> New signups are always assigned the `user` role. Admin role must be set manually in the database or via the admin panel.
 
 
 ## Project Structure
@@ -29,88 +56,101 @@ A full-stack CRUD application built with **MongoDB · Express.js · React · Nod
 project-root/
 ├── backend/
 │   ├── controllers/
-│   │   └── userController.js   -> Business logic (GET, POST, DELETE)
+│   │   ├── authController.js       -> signup, login, getMe
+│   │   ├── userController.js       -> getProfile, updateProfile
+│   │   └── adminController.js      -> getAllUsers, deleteUser, updateRole
+│   ├── middleware/
+│   │   └── authMiddleware.js       -> protect (JWT verify) + authorize (role check)
 │   ├── models/
-│   │   └── User.js             -> Mongoose schema (name, email)
+│   │   └── User.js                 -> name, email, password (hashed), role
 │   ├── routes/
-│   │   └── userRoutes.js       -> Express route definitions
-│   ├── .env                    -> Environment variables (PORT, MONGO_URI)
+│   │   ├── authRoutes.js           -> /api/auth/*
+│   │   ├── userRoutes.js           -> /api/user/*
+│   │   └── adminRoutes.js          -> /api/admin/*
+│   ├── .env
 │   ├── package.json
-│   └── server.js               -> Entry point
+│   └── server.js
 │
 ├── frontend/
-│   ├── public/
-│   │   └── index.html
 │   ├── src/
+│   │   ├── context/
+│   │   │   └── AuthContext.jsx     -> Global auth state
 │   │   ├── components/
-│   │   │   ├── UserForm.jsx    -> Add user form
-│   │   │   ├── UserForm.css
-│   │   │   ├── UserList.jsx    -> Display & delete users
-│   │   │   └── UserList.css
+│   │   │   ├── Navbar.jsx          -> Navigation with role-aware links
+│   │   │   └── ProtectedRoute.jsx  -> Redirect unauthenticated users
+│   │   ├── pages/
+│   │   │   ├── Home.jsx         → Landing page
+│   │   │   ├── Login.jsx        → Login form
+│   │   │   ├── Signup.jsx       → Signup form
+│   │   │   ├── Dashboard.jsx    → User dashboard
+│   │   │   ├── AdminDashboard.jsx → Admin panel
+│   │   │   └── Profile.jsx      → Update profile
 │   │   ├── services/
-│   │   │   └── api.js          -> Axios API calls
-│   │   ├── App.jsx             -> Root component + state management
-│   │   ├── App.css
-│   │   ├── index.js
-│   │   └── index.css
+│   │   │   └── api.js           → Axios with JWT interceptor
+│   │   ├── App.jsx              → Routes
+│   │   └── index.js
 │   └── package.json
 │
-├── MERN_API_Tests.postman_collection.json
 └── README.md
 ```
 
 
-## Prerequisites
+## API Endpoints
 
-Make sure the following are installed for local development:
+### Auth Routes (`/api/auth`)
 
-| Tool | Version | Download |
-|------|---------|----------|
-| Node.js | 18+ | https://nodejs.org |
-| MongoDB | 6+ | https://www.mongodb.com/try/download/community |
-| MongoDB Compass | Latest | https://www.mongodb.com/products/compass |
-| VS Code | Latest | https://code.visualstudio.com |
-| Postman | Latest | https://www.postman.com/downloads |
+| Method | Endpoint | Access | Description |
+|--------|----------|--------|-------------|
+| POST | `/api/auth/signup` | Public | Register new user |
+| POST | `/api/auth/login` | Public | Login and get token |
+| GET | `/api/auth/me` | Protected | Get current user |
+
+### User Routes (`/api/user`)
+
+| Method | Endpoint | Access | Description |
+|--------|----------|--------|-------------|
+| GET | `/api/user/profile` | Protected | Get profile |
+| PUT | `/api/user/profile` | Protected | Update profile |
+
+### Admin Routes (`/api/admin`)
+
+| Method | Endpoint | Access | Description |
+|--------|----------|--------|-------------|
+| GET | `/api/admin/users` | Admin only | Get all users |
+| DELETE | `/api/admin/users/:id` | Admin only | Delete user |
+| PUT | `/api/admin/users/:id/role` | Admin only | Update user role |
 
 
-## Local Setup & Running
+## Local Setup
 
-### 1. Clone the Repository
+### 1. Clone & Install
 
 ```bash
-git clone https://github.com/numair-2003/user_management_system.git
-cd user_management_system
+git clone https://github.com/YOUR_USERNAME/YOUR_REPO.git
+cd project-root
 ```
 
-### 2. Backend Setup
+### 2. Backend
 
 ```bash
 cd backend
 npm install
 ```
 
-Create a `.env` file inside the `backend` folder:
-
+Create `.env` file:
 ```
-PORT = 5000
-MONGO_URI = mongodb://localhost:27017/mern_users
+PORT=5000
+MONGO_URI=mongodb://localhost:27017/mern_auth
+JWT_SECRET=your_super_secret_key
+JWT_EXPIRES_IN=7d
 ```
 
-Then run:
-
+Run:
 ```bash
-npm run dev       # uses nodemon for auto-reload
-# OR
-npm start         # plain node
+npm run dev
 ```
 
-You should see:
-
-  1. Connected to MongoDB
-  2. Server running at http://localhost:5000
-  
-
-### 3. Frontend Setup
+### 3. Frontend
 
 ```bash
 cd frontend
@@ -118,104 +158,39 @@ npm install
 npm start
 ```
 
-React app opens at: **http://localhost:3000**
+
+## Creating an Admin User
+
+After signup, you can promote a user to admin two ways:
+
+**Option 1 — MongoDB Compass:**
+Find the user → change `role` field from `"user"` to `"admin"` → Save
+
+**Option 2 — Admin Panel:**
+Login as an existing admin → go to Admin Panel → click `→ admin` next to any user
 
 
-## API Endpoints
+## Deployment
 
-| Method | Endpoint | Description | Body |
-|--------|----------|-------------|------|
-| GET | `/users` | Fetch all users | — |
-| POST | `/users` | Create new user | `{ "name": "...", "email": "..." }` |
-| DELETE | `/users/:id` | Delete user by ID | — |
+### Backend → Railway
+Add these environment variables:
+- `MONGO_URI` → MongoDB Atlas connection string
+- `JWT_SECRET` → any long random string
+- `JWT_EXPIRES_IN` → `7d`
 
-
-### Example Responses
-
-**GET /users**
-```json
-{
-  "success": true,
-  "count": 1,
-  "data": [
-    {
-      "_id": "657f...",
-      "name": "Alice",
-      "email": "alice@example.com",
-      "createdAt": "2024-01-15T10:00:00.000Z"
-    }
-  ]
-}
-```
-
-**POST /users**
-```json
-// Request body
-{ "name": "Alice", "email": "alice@example.com" }
-
-// Response 201
-{ "success": true, "message": "User created successfully!", "data": { ... } }
-```
-
-**DELETE /users/:id**
-```json
-// Response 200
-{ "success": true, "message": "User deleted successfully!", "data": { ... } }
-```
-
-## Postman API Testing
-
-1. Open **Postman**
-2. Click **Import** -> upload `MERN_API_Tests.postman_collection.json`
-3. The collection includes 6 pre-built requests:
-   - Health Check (GET /)
-   - GET All Users
-   - POST Create User
-   - DELETE User by ID
-   - POST Missing Email (validation test)
-   - DELETE Invalid ID (error handling test)
-
-> **Tip:** Run POST first to add a user, then copy the `_id` from the response and paste it into the DELETE request URL.
+### Frontend → Vercel
+Add environment variable:
+- `REACT_APP_API_URL` → your Railway backend URL
 
 
-## Frontend Features
+## Security Features
 
-- **Add User Form** — Name + email inputs with client-side validation
-- **User List** — Displays all users with avatar initials, name, email, date added
-- **Delete** — Removes user instantly from UI and database
-- **Toast Notifications** — Success/error feedback
-- **Error Banner** — Shows if backend is unreachable
-- **Responsive Design** — Works on mobile and desktop
+- Passwords hashed with **bcrypt** (salt rounds: 10)
+- JWT tokens expire after **7 days**
+- Password field never returned in API responses (`select: false`)
+- Role escalation blocked on signup (users can't self-assign admin)
+- Protected routes redirect unauthenticated users to `/login`
+- Admin routes blocked for non-admin users (403 Forbidden)
 
-
-## Deployment Guide
-
-### Frontend -> Vercel
-1. Push code to GitHub
-2. Go to [vercel.com](https://vercel.com) -> Import GitHub repo
-3. Set Root Directory to `frontend`
-4. Add environment variable: `REACT_APP_API_URL` = your Railway backend URL
-5. Deploy
-
-### Backend -> Railway
-1. Go to [railway.app](https://railway.app) -> New Project -> GitHub Repository
-2. Select your repo and set Root Directory to `backend`
-3. Add environment variable: `MONGO_URI` = your MongoDB Atlas connection string
-4. Generate a public domain in Settings -> Networking
-5. Deploy
-
-### Database -> MongoDB Atlas
-1. Go to [mongodb.com/atlas](https://www.mongodb.com/cloud/atlas) -> Create free cluster
-2. Create a database user and allow all IP addresses (0.0.0.0/0)
-3. Get your connection string and use it as `MONGO_URI`
-
-
-## GitHub Repository
-
-- `/backend` — Node.js + Express server
-- `/frontend` — React application
-- `.gitignore` — Excludes node_modules and .env
-- `README.md` — Project documentation
-- `MERN_API_Tests.postman_collection.json` — API test collection
 
 *Built by **Numair Fahad** — MERN Stack Intern at DawoodTech NextGen*
