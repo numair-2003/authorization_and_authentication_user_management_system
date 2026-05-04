@@ -208,7 +208,16 @@ After signing up, promote a user to admin in two ways:
 6. Click Update
 7. Logout and login again
 
-**Option 2 — Admin Panel:**
+**Option 2 — MongoDB Compass (Production/Cloud Atlas):**
+1. Log in to **MongoDB Atlas** and navigate to your Cluster
+2. Click **Connect** and select **Connect using MongoDB Compass**
+3. Copy the provided URI string
+4. Open **MongoDB Compass**, paste the URI, and replace `<password>` with your database user password
+5. Open the `mern_auth` -> `users` collection and update the user role to `"admin"`
+
+> **Note:** When setting your Database User password in MongoDB Cloud Atlas, avoid using special symbols (like `@`, `:`, `/`, or `#`). These characters have special meanings in URIs and can cause connection failures in MongoDB Compass or Railway App. Always use alphanumeric characters for the best results.
+
+**Option 3 — Admin Panel:**
 Login as an existing admin -> go to Admin Panel -> click `-> admin` next to any user.
 
 
@@ -216,16 +225,17 @@ Login as an existing admin -> go to Admin Panel -> click `-> admin` next to any 
 
 ### Backend -> Railway
 
-Add these environment variables in Railway dashboard:
-- `MONGO_URI` -> `mongodb+srv://numair1919_db_user:IS6gghxC4MEVwsQg@cluster0.k0ber2d.mongodb.net/mern_auth? appName=Cluster0`
-- `JWT_SECRET` -> `supersecretkey123`
-- `JWT_EXPIRES_IN` -> `7d`
-- `PORT` -> `8080` (If port number will be 5000, Railway will overwrite it with the port number 8080.)
+1. Set the **Root Directory** to `/backend` in Railway settings
+2. Ensure the **Custom Build Command** is empty (to skip unnecessary `npm run build` checks)
+3. Add Environment Variables:
+   - `MONGO_URI`: `mongodb+srv://numair1919_db_user:IS6gghxC4MEVwsQg@cluster0.k0ber2d.mongodb.net/mern_auth?appName=Cluster0` (Ensure there are no whitespaces spaces in URI)
+   - `JWT_SECRET`: `supersecretkey123`
+   - `PORT`: `5000`
 
 ### Frontend -> Vercel
 
 Add an environment variable in Vercel dashboard:
-- `REACT_APP_API_URL` -> `authorizationandauthenticationusermanagement-production.up.railway.app`
+- `REACT_APP_API_URL` -> `https://authorizationandauthenticationusermanagement-production.up.railway.app` (Ensure `https://` prefix is included)
 
 
 ## Security Features
