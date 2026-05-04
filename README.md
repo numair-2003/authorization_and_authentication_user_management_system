@@ -3,13 +3,23 @@
 
 A full-stack authentication system built with **MongoDB · Express.js · React · Node.js**
 
-
 ## Live Demo
 
 | | URL |
 |---|---|
-| **Frontend** | *(deploy to Vercel and add URL here)* |
-| **Backend API** | *(deploy to Railway and add URL here)* |
+| **Frontend** | https://authorization-and-authentication-us.vercel.app |
+| **Backend API** | https://authorizationandauthenticationusermanagement-production.up.railway.app/ |
+
+> **Note:** The backend is hosted on Railway's free tier and may take 10–15 seconds to wake up after a period of inactivity. Simply refresh if the page doesn't load immediately.
+
+
+## Deployment Stack
+
+| Service | Platform | Purpose |
+|---------|----------|---------|
+| Frontend | [Vercel](https://vercel.com) | Hosts the React app |
+| Backend | [Railway](https://railway.app) | Runs the Node/Express server |
+| Database | [MongoDB Atlas](https://www.mongodb.com/atlas) | Cloud-hosted MongoDB -> stores data |
 
 
 ## Authentication Flow
@@ -19,10 +29,10 @@ User Signup
     │
     ▼
 POST /api/auth/signup
-    │  → Validate input
-    │  → Hash password with bcrypt
-    │  → Save user to MongoDB
-    │  → Generate JWT token
+    │  -> Validate input
+    │  -> Hash password with bcrypt
+    │  -> Save user to MongoDB
+    │  -> Generate JWT token
     ▼
 Return token + user data
     │
@@ -35,8 +45,8 @@ Every API request sends: Authorization: Bearer <token>
     ▼
 authMiddleware verifies token
     │
-    ├─ Valid token → attach user to req.user → next()
-    └─ Invalid token → 401 Unauthorized
+    ├─ Valid token → attach user to req.user -> next()
+    └─ Invalid token -> 401 Unauthorized
 ```
 
 
@@ -47,7 +57,7 @@ authMiddleware verifies token
 | **user** | View profile, update profile, user dashboard |
 | **admin** | All user access + admin panel, manage all users, change roles, delete users |
 
-> New signups are always assigned the `user` role. Admin role must be set manually in the database or via the admin panel.
+> New signups are always assigned the `user` role by default. Admin role must be set manually in MongoDB Compass or via the Admin Panel by an existing admin.
 
 
 ## Project Structure
@@ -56,41 +66,51 @@ authMiddleware verifies token
 project-root/
 ├── backend/
 │   ├── controllers/
-│   │   ├── authController.js       -> signup, login, getMe
-│   │   ├── userController.js       -> getProfile, updateProfile
-│   │   └── adminController.js      -> getAllUsers, deleteUser, updateRole
+│   │   ├── authController.js      -> signup, login, getMe
+│   │   ├── userController.js      -> getProfile, updateProfile
+│   │   └── adminController.js     -> getAllUsers, deleteUser, updateRole
 │   ├── middleware/
-│   │   └── authMiddleware.js       -> protect (JWT verify) + authorize (role check)
+│   │   └── authMiddleware.js      -> protect (JWT verify) + authorize (role check)
 │   ├── models/
-│   │   └── User.js                 -> name, email, password (hashed), role
+│   │   └── User.js                -> name, email, password (hashed), role
 │   ├── routes/
-│   │   ├── authRoutes.js           -> /api/auth/*
-│   │   ├── userRoutes.js           -> /api/user/*
-│   │   └── adminRoutes.js          -> /api/admin/*
-│   ├── .env
+│   │   ├── authRoutes.js          -> /api/auth/*
+│   │   ├── userRoutes.js          -> /api/user/*
+│   │   └── adminRoutes.js         -> /api/admin/*
+│   ├── .env                       -> Environment variables
 │   ├── package.json
-│   └── server.js
+│   └── server.js                  -> Entry point
 │
 ├── frontend/
+│   ├── public/
+│   │   └── index.html
 │   ├── src/
 │   │   ├── context/
-│   │   │   └── AuthContext.jsx     -> Global auth state
+│   │   │   └── AuthContext.jsx    -> Global auth state (login, logout, user)
 │   │   ├── components/
-│   │   │   ├── Navbar.jsx          -> Navigation with role-aware links
-│   │   │   └── ProtectedRoute.jsx  -> Redirect unauthenticated users
+│   │   │   ├── Navbar.jsx         -> Role-aware navigation bar
+│   │   │   ├── Navbar.css
+│   │   │   └── ProtectedRoute.jsx -> Redirects unauthenticated users
 │   │   ├── pages/
-│   │   │   ├── Home.jsx         → Landing page
-│   │   │   ├── Login.jsx        → Login form
-│   │   │   ├── Signup.jsx       → Signup form
-│   │   │   ├── Dashboard.jsx    → User dashboard
-│   │   │   ├── AdminDashboard.jsx → Admin panel
-│   │   │   └── Profile.jsx      → Update profile
+│   │   │   ├── Home.jsx           -> Landing page
+│   │   │   ├── Home.css
+│   │   │   ├── Login.jsx          -> Login form
+│   │   │   ├── Signup.jsx         -> Signup form
+│   │   │   ├── Auth.css           -> Shared login/signup styles
+│   │   │   ├── Dashboard.jsx      -> User dashboard
+│   │   │   ├── Dashboard.css
+│   │   │   ├── AdminDashboard.jsx -> Admin panel (manage all users)
+│   │   │   ├── AdminDashboard.css
+│   │   │   ├── Profile.jsx        -> Update profile page
+│   │   │   └── Profile.css
 │   │   ├── services/
-│   │   │   └── api.js           → Axios with JWT interceptor
-│   │   ├── App.jsx              → Routes
-│   │   └── index.js
+│   │   │   └── api.js             -> Axios with JWT interceptor
+│   │   ├── App.jsx                -> Route definitions
+│   │   ├── index.js               -> React entry point
+│   │   └── index.css              -> Global styles + CSS variables
 │   └── package.json
 │
+├── MERN_API_Tests.postman_collection.json
 └── README.md
 ```
 
@@ -102,46 +122,54 @@ project-root/
 | Method | Endpoint | Access | Description |
 |--------|----------|--------|-------------|
 | POST | `/api/auth/signup` | Public | Register new user |
-| POST | `/api/auth/login` | Public | Login and get token |
-| GET | `/api/auth/me` | Protected | Get current user |
+| POST | `/api/auth/login` | Public | Login and get JWT token |
+| GET | `/api/auth/me` | Protected | Get current logged in user |
 
 ### User Routes (`/api/user`)
 
 | Method | Endpoint | Access | Description |
 |--------|----------|--------|-------------|
-| GET | `/api/user/profile` | Protected | Get profile |
-| PUT | `/api/user/profile` | Protected | Update profile |
+| GET | `/api/user/profile` | Protected | Get user profile |
+| PUT | `/api/user/profile` | Protected | Update user profile |
 
 ### Admin Routes (`/api/admin`)
 
 | Method | Endpoint | Access | Description |
 |--------|----------|--------|-------------|
 | GET | `/api/admin/users` | Admin only | Get all users |
-| DELETE | `/api/admin/users/:id` | Admin only | Delete user |
+| DELETE | `/api/admin/users/:id` | Admin only | Delete a user |
 | PUT | `/api/admin/users/:id/role` | Admin only | Update user role |
 
 
 ## Local Setup
 
-### 1. Clone & Install
+### 1. Clone the Repository
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/YOUR_REPO.git
-cd project-root
+git clone https://github.com/numair-2003/authorization_and_authentication_user_management_system.git
+cd authorization_and_authentication_user_management_system
 ```
 
-### 2. Backend
+### 2. Start MongoDB Locally
+
+```bash
+# Windows
+"C:\Program Files\MongoDB\Server\8.2\bin\mongod.exe" --dbpath "D:\MongoDB\data\db"
+```
+
+### 3. Backend Setup
 
 ```bash
 cd backend
 npm install
 ```
 
-Create `.env` file:
+Create a `.env` file inside the `backend` folder:
+
 ```
 PORT=5000
 MONGO_URI=mongodb://localhost:27017/mern_auth
-JWT_SECRET=your_super_secret_key
+JWT_SECRET=supersecretkey123
 JWT_EXPIRES_IN=7d
 ```
 
@@ -150,7 +178,13 @@ Run:
 npm run dev
 ```
 
-### 3. Frontend
+You should see:
+```
+✅ Connected to MongoDB
+🚀 Server running at http://localhost:5000
+```
+
+### 4. Frontend Setup
 
 ```bash
 cd frontend
@@ -158,29 +192,40 @@ npm install
 npm start
 ```
 
+React app opens at: **http://localhost:3000**
+
 
 ## Creating an Admin User
 
-After signup, you can promote a user to admin two ways:
+After signing up, promote a user to admin in two ways:
 
 **Option 1 — MongoDB Compass:**
-Find the user → change `role` field from `"user"` to `"admin"` → Save
+1. Open MongoDB Compass
+2. Connect to `mongodb://localhost:27017`
+3. Go to `mern_auth` database -> `users` collection
+4. Find your user -> click Edit
+5. Change `role` from `"user"` to `"admin"`
+6. Click Update
+7. Logout and login again
 
 **Option 2 — Admin Panel:**
-Login as an existing admin → go to Admin Panel → click `→ admin` next to any user
+Login as an existing admin -> go to Admin Panel -> click `-> admin` next to any user.
 
 
-## Deployment
+## Deployment Guide
 
-### Backend → Railway
-Add these environment variables:
-- `MONGO_URI` → MongoDB Atlas connection string
-- `JWT_SECRET` → any long random string
-- `JWT_EXPIRES_IN` → `7d`
+### Backend -> Railway
 
-### Frontend → Vercel
-Add environment variable:
-- `REACT_APP_API_URL` → your Railway backend URL
+Add these environment variables in Railway dashboard:
+- `MONGO_URI` -> `mongodb+srv://numair1919_db_user:IS6gghxC4MEVwsQg@cluster0.k0ber2d.mongodb.net/mern_auth? appName=Cluster0`
+- `JWT_SECRET` -> `supersecretkey123`
+- `JWT_EXPIRES_IN` -> `7d`
+- `PORT` -> `8080` (If port number will be 5000, Railway will overwrite it with the port number 8080.)
+
+### Frontend -> Vercel
+
+Add an environment variable in Vercel dashboard:
+- `REACT_APP_API_URL` -> `authorizationandauthenticationusermanagement-production.up.railway.app`
 
 
 ## Security Features
@@ -188,9 +233,9 @@ Add environment variable:
 - Passwords hashed with **bcrypt** (salt rounds: 10)
 - JWT tokens expire after **7 days**
 - Password field never returned in API responses (`select: false`)
-- Role escalation blocked on signup (users can't self-assign admin)
+- Role escalation blocked on signup (users cannot self-assign admin)
 - Protected routes redirect unauthenticated users to `/login`
-- Admin routes blocked for non-admin users (403 Forbidden)
-
+- Admin routes return **403 Forbidden** error for non-admin users
+- JWT verified on every protected request via middleware
 
 *Built by **Numair Fahad** — MERN Stack Intern at DawoodTech NextGen*
